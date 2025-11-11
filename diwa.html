@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Happy Diwali</title>
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(circle, #1a0022, #000000);
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1 {
+      position: absolute;
+      top: 40%;
+      width: 100%;
+      text-align: center;
+      font-size: 5rem;
+      font-weight: bold;
+      color: #FFD700;
+      text-shadow:
+        0 0 10px #ff4d00,
+        0 0 20px #ff6e00,
+        0 0 30px #ffa500,
+        0 0 40px #ff4d00;
+      animation: flicker 2s infinite alternate;
+      z-index: 2;
+    }
+
+    @keyframes flicker {
+      0%, 100% {
+        opacity: 1;
+        text-shadow:
+          0 0 15px #FFD700,
+          0 0 25px #FF4500,
+          0 0 35px #FF6347,
+          0 0 45px #FFD700;
+      }
+      50% {
+        opacity: 0.85;
+        text-shadow:
+          0 0 10px #FFA500,
+          0 0 20px #FF4500,
+          0 0 30px #FF6347,
+          0 0 40px #FF8C00;
+      }
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: block;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Happy Diwali!</h1>
+<canvas id="fireworks"></canvas>
+
+<script>
+  const canvas = document.getElementById('fireworks');
+  const ctx = canvas.getContext('2d');
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+
+  window.addEventListener('resize', () => {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+  });
+
+  class Firework {
+    constructor() {
+      this.x = Math.random() * width;
+      this.y = height;
+      this.targetY = Math.random() * height * 0.5 + 100;
+      this.speed = 6 + Math.random() * 4;
+      this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+      this.exploded = false;
+    }
+
+    update() {
+      this.y -= this.speed;
+      if (this.y <= this.targetY && !this.exploded) {
+        this.exploded = true;
+        this.explode();
+      }
+    }
+
+    explode() {
+      for (let i = 0; i < 80; i++) {
+        particles.push(new Particle(this.x, this.y, this.color));
+      }
+    }
+
+    draw() {
+      if (!this.exploded) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 15;
+        ctx.fill();
+      }
+    }
+  }
+
+  class Particle {
+    constructor(x, y, color) {
+      this.x = x;
+      this.y = y;
+      this.radius = Math.random() * 2 + 1;
+      this.color = color;
+      this.speedX = (Math.random() - 0.5) * 10;
+      this.speedY = (Math.random() - 0.5) * 10;
+      this.gravity = 0.05;
+      this.alpha = 1;
+      this.fade = 0.01 + Math.random() * 0.015;
+    }
+
+    update() {
+      this.speedY += this.gravity;
+      this.x += this.speedX;
+      this.y += this.speedY;
+      this.alpha -= this.fade;
+    }
+
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.alpha;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.shadowColor = this.color;
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  let fireworks = [];
+  let particles = [];
+
+  function animate() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+    ctx.fillRect(0, 0, width, height);
+
+    if (Math.random() < 0.15) {  // More frequent fireworks
+      fireworks.push(new Firework());
+    }
+
+    fireworks.forEach((fw, i) => {
+      fw.update();
+      fw.draw();
+      if (fw.exploded) fireworks.splice(i, 1);
+    });
+
+    particles.forEach((p, i) => {
+      p.update();
+      p.draw();
+      if (p.alpha <= 0) particles.splice(i, 1);
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+</script>
+
+</body>
+</html>
